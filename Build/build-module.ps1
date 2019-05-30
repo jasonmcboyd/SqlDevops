@@ -1,14 +1,9 @@
-param (
-    [parameter(Mandatory=$true)]
-    [string]
-    $Environment
-)
 Push-Location $PSScriptRoot
 try {
     docker build --platform windows --rm -t sqldevops/build:latest .
     rm ./bin/* -force -recurse
     docker run `
-        -d `
+        -t `
         --rm `
         --platform windows `
         -e VERSION=$Environment `
