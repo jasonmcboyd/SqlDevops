@@ -31,7 +31,7 @@ function Export-DacPac {
 
     $connectionStringBuilder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
 
-    if ($PSBoundParameters.ParameterSetName -eq 'ConnectionString') {
+    if ($PSCmdlet.ParameterSetName -eq 'ConnectionString') {
         $connectionStringBuilder.ConnectionString = $connectionString
     }
     else {
