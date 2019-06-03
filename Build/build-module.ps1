@@ -1,7 +1,12 @@
 Push-Location $PSScriptRoot
 try {
+    if (!(Test-Path ./bin)) {
+        mkdir ./bin | out-null
+    }
+    else {
+        rm ./bin/* -force -recurse
+    }
     docker build --platform windows --rm -t sqldevops/build:latest .
-    rm ./bin/* -force -recurse
     docker run `
         -t `
         --rm `

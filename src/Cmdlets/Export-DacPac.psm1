@@ -1,7 +1,7 @@
 function Export-DacPac {
     [CmdletBinding()]
     param (
-        [Parameter(ParameterSetName='NotConnectionString')]
+        [Parameter(Mandatory=$true,ParameterSetName='NotConnectionString')]
         [string]
         $Server,
 
@@ -13,7 +13,7 @@ function Export-DacPac {
         [PSCredential]
         $Credential,
 
-        [Parameter(ParameterSetName='ConnectionString')]
+        [Parameter(Mandatory=$true,ParameterSetName='ConnectionString')]
         [string]
         $ConnectionString,
 
@@ -26,13 +26,26 @@ function Export-DacPac {
     )
 
     if ((Test-Path $Destination) -and !$Overwrite) {
-        Write-Error "File already exists."
+        throw "File already exists."
     }
 
     $connectionStringBuilder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
 
     if ($PSCmdlet.ParameterSetName -eq 'ConnectionString') {
-        $connectionStringBuilder.ConnectionString = $connectionString
+        # HACK: For some reason setting the 'ConnectionString' property directly
+        # results in an ArgumentException:
+        #
+        # Keyword not supported: 'ConnectionString'
+        #
+        # Found this workaround somewhere on the internet.
+        $connectionStringBuilder.set_ConnectionString($ConnectionString)
+        
+        # Extract the database name from the connection string
+        $DatabaseName = $connectionStringBuilder.InitialCatalog
+
+        if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
+            throw "The database name must be included in the connection string."
+        }
     }
     else {
         if ([string]::IsNullOrWhiteSpace($Server)) {
@@ -44,6 +57,11 @@ function Export-DacPac {
         $connectionStringBuilder.Add("User Id", $Credential.UserName)
         $connectionStringBuilder.Add("Password", $Credential.GetNetworkCredential().Password)
     }
+
+    $ErrorActionPreference = 'Stop'
+
+    $Destination = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Destination)
+    Write-Verbose "Exporting dacpac to $Destination."
 
     $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionStringBuilder.ConnectionString)
     $service.Extract($Destination, $DatabaseName, "SqlDevOps", [Version]::new(1,0,0,0))
