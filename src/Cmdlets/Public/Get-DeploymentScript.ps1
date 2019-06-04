@@ -1,41 +1,38 @@
-function Export-DacPac {
+function Get-DeploymentScript {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
         [string]
         $Path,
 
-        [Parameter(ParameterSetName='ConnectionString')]
+        [Parameter(ParameterSetName='ConnectionString', ValueFromPipelineByPropertyName=$true)]
         [string]
         $ConnectionString,
 
-        [Parameter(Mandatory=$true, ParameterSetName='NotConnectionString')]
+        [Parameter(Mandatory=$true, ParameterSetName='NotConnectionString', ValueFromPipelineByPropertyName=$true)]
         [string]
         $Server,
 
-        [Parameter(ParameterSetName='NotConnectionString')]
+        [Parameter(ParameterSetName='NotConnectionString', ValueFromPipelineByPropertyName=$true)]
         [PSCredential]
         $Credential,
 
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [string]
-        $DatabaseName,
-
-        [switch]
-        $Overwrite
+        $DatabaseName
     )
 
     process {
         $ErrorActionPreference = 'Stop'
 
-        $Path = Normalize-Path($Path)
+        if ($PSCmdlet.ParameterSetName -eq 'NotConnectionString' -and [string]::IsNullOrWhiteSpace($DatabaseName)) {
+            throw "The DatabaseName parameter is mandatory when authenticating with credentials."
+        }
 
-        if (Test-Path $Path) {
-            if ($Overwrite) {
-                Write-Verbose "'$Path' exists but Overwrite switch was included."
-            }
-            else {
-                throw "File already exists."
-            }
+        # Normalize and validate the path.
+        $Path = Normalize-Path($Path)
+        if (!(Test-Path $Path)) {
+            throw "DacPac not found at: $Path"
         }
 
         $connectionStringBuilder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
@@ -47,8 +44,8 @@ function Export-DacPac {
             # Keyword not supported: 'ConnectionString'
             #
             # Found this workaround somewhere on the internet.
-            $connectionStringBuilder.set_ConnectionString($ConnectionString)
-            
+            $connectionStringBuilder.set_ConnectionString($connectionString)
+
             # If the DatabaseName parameter was passed set the Initial Catalog of the
             # connection string builder to the database.
             if (![string]::IsNullOrWhiteSpace($DatabaseName)) {
@@ -61,10 +58,12 @@ function Export-DacPac {
             $connectionStringBuilder.Add("User Id", $Credential.UserName)
             $connectionStringBuilder.Add("Password", $Credential.GetNetworkCredential().Password)
         }
-
-        Write-Verbose "Exporting dacpac to $Path."
+        
         $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionStringBuilder.ConnectionString)
-        $service.Extract($Path, $connectionStringBuilder.InitialCatalog, "SqlDevOps", [Version]::new(1,0,0,0))
-        Get-Item -Path $Path
+        $package = [Microsoft.SqlServer.Dac.DacPackage]::Load($Path)
+        $options = [Microsoft.SqlServer.Dac.DacDeployOptions]::new()
+        [PSCustomObject]@{
+            DeploymentScript = $service.GenerateDeployScript($package, $connectionStringBuilder.InitialCatalog, $options)
+        }
     }
 }
