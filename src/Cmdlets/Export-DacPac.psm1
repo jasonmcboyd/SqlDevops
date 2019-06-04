@@ -48,10 +48,6 @@ function Export-DacPac {
         }
     }
     else {
-        if ([string]::IsNullOrWhiteSpace($Server)) {
-            $Server = 'localhost'
-        }
-        
         $connectionStringBuilder.Add("Data Source", $Server)
         $connectionStringBuilder.Add("Initial Catalog", $DatabaseName)
         $connectionStringBuilder.Add("User Id", $Credential.UserName)
