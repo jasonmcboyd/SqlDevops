@@ -1,31 +1,34 @@
 function Export-DacPac {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true,ParameterSetName='NotConnectionString')]
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]
+        $Path,
+
+        [Parameter(ParameterSetName='ConnectionString')]
+        [string]
+        $ConnectionString,
+
+        [Parameter(Mandatory=$true, ParameterSetName='NotConnectionString')]
         [string]
         $Server,
-
-        [Parameter(Mandatory = $true,ParameterSetName='NotConnectionString')]
-        [string]
-        $DatabaseName,
 
         [Parameter(ParameterSetName='NotConnectionString')]
         [PSCredential]
         $Credential,
 
-        [Parameter(Mandatory=$true,ParameterSetName='ConnectionString')]
         [string]
-        $ConnectionString,
-
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Destination,
+        $DatabaseName,
 
         [switch]
         $Overwrite
     )
 
-    if ((Test-Path $Destination) -and !$Overwrite) {
+    $ErrorActionPreference = 'Stop'
+
+    $Path = Normalize-Path($Path)
+
+    if ((Test-Path $Path) -and !$Overwrite) {
         throw "File already exists."
     }
 
@@ -40,11 +43,10 @@ function Export-DacPac {
         # Found this workaround somewhere on the internet.
         $connectionStringBuilder.set_ConnectionString($ConnectionString)
         
-        # Extract the database name from the connection string
-        $DatabaseName = $connectionStringBuilder.InitialCatalog
-
-        if ([string]::IsNullOrWhiteSpace($DatabaseName)) {
-            throw "The database name must be included in the connection string."
+        # If the DatabaseName parameter was passed set the Initial Catalog of the
+        # connection string builder to the database.
+        if (![string]::IsNullOrWhiteSpace($DatabaseName)) {
+            $connectionStringBuilder.set_InitialCatalog($DatabaseName)
         }
     }
     else {
@@ -54,12 +56,8 @@ function Export-DacPac {
         $connectionStringBuilder.Add("Password", $Credential.GetNetworkCredential().Password)
     }
 
-    $ErrorActionPreference = 'Stop'
-
-    $Destination = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Destination)
-    Write-Verbose "Exporting dacpac to $Destination."
-
+    Write-Verbose "Exporting dacpac to $Path."
     $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionStringBuilder.ConnectionString)
-    $service.Extract($Destination, $DatabaseName, "SqlDevOps", [Version]::new(1,0,0,0))
-    Get-Item -Path $Destination
+    $service.Extract($Path, $connectionStringBuilder.InitialCatalog, "SqlDevOps", [Version]::new(1,0,0,0))
+    Get-Item -Path $Path
 }

@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-# RootModule = ''
+RootModule = 'SqlDevOps.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.0.7'
@@ -57,9 +57,7 @@ Description = 'WIP: SQL DevOps'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-ScriptsToProcess = @(
-    './Scripts/LoadDacFx.ps1'
-)
+# ScriptsToProcess = @()
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -67,11 +65,8 @@ ScriptsToProcess = @(
 # Format files (.ps1xml) to be loaded when importing this module
 # FormatsToProcess = @()
 
-# Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @(
-    './Cmdlets/Export-DacPac.psm1'
-    './Cmdlets/Publish-DacPac.psm1'
-)
+# Modules to import as nested modules of the module specified in RootModule\ModuleToProcess
+# NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
@@ -80,7 +75,7 @@ FunctionsToExport = @(
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = @()
+CmdletsToExport = "*"
 
 # Variables to export from this module
 VariablesToExport = '*'
@@ -97,17 +92,16 @@ AliasesToExport = @()
 # List of all files packaged with this module
 FileList = @(
     # Binaries
-    './lib'
+    'lib'
 
     # Cmdlets
-    './Cmdlets/Export-DacPac.psm1'
-    './Cmdlets/Publish-DacPac.psm1'
+    'Cmdlets'
 
     # Scripts
-    './Scripts/LoadDacFx.ps1'
+    'Scripts'
 )
 
-# Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
+# Private data to pass to the module specified in RootModule\ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
 
     PSData = @{
