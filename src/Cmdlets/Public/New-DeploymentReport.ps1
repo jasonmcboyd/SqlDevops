@@ -1,4 +1,4 @@
-function Publish-DacPac {
+function New-DeploymentReport {
     [CmdletBinding()]
     param (
         [Parameter(
@@ -38,7 +38,10 @@ function Publish-DacPac {
             ParameterSetName='AuthenticateWithCredentials',
             ValueFromPipelineByPropertyName=$true)]
         [string]
-        $DatabaseName
+        $DatabaseName,
+
+        [switch]
+        $VerifyDeployment
     )
 
     process {
@@ -59,7 +62,9 @@ function Publish-DacPac {
         
         $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionEndpoint.ConnectionString)
         $package = [Microsoft.SqlServer.Dac.DacPackage]::Load($Path)
-        $options = [Microsoft.SqlServer.Dac.PublishOptions]::new()
-        $service.Publish($package, $connectionEndpoint.DatabaseName, $options)
+        $options = [Microsoft.SqlServer.Dac.DacDeployOptions]::new()
+        # TODO: Does this do anything useful?
+        $options.VerifyDeployment = $VerifyDeployment
+        $service.GenerateDeployReport($package, $connectionEndpoint.DatabaseName, $options)
     }
 }

@@ -1,24 +1,55 @@
 function Export-DacPac {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(
+            Mandatory=$true,
+            Position=0,
+            ValueFromPipelineByPropertyName=$true)]
         [string]
         $Path,
 
-        [Parameter(ParameterSetName='ConnectionString')]
+        [Parameter(
+            Mandatory=$true,
+            ParameterSetName='Model',
+            ValueFromPipeline=$true,
+            ValueFromPipelineByPropertyName=$true)]
+        [Microsoft.SqlServer.Dac.Model.TSqlModel]
+        $Model,
+
+        [Parameter(
+            Mandatory=$true,
+            ParameterSetName='AuthenticateWithConnectionString',
+            ValueFromPipelineByPropertyName=$true)]
         [string]
         $ConnectionString,
 
-        [Parameter(Mandatory=$true, ParameterSetName='NotConnectionString')]
-        [string]
-        $Server,
-
-        [Parameter(ParameterSetName='NotConnectionString')]
+        [Parameter(
+            Mandatory=$true,
+            ParameterSetName='AuthenticateWithCredentials',
+            ValueFromPipelineByPropertyName=$true)]
         [PSCredential]
         $Credential,
 
+        [Parameter(
+            Mandatory=$true,
+            ParameterSetName='AuthenticateWithCredentials',
+            ValueFromPipelineByPropertyName=$true)]
+        [string]
+        $Server,
+
+        [Parameter(
+            ParameterSetName='AuthenticateWithConnectionString',
+            ValueFromPipelineByPropertyName=$true)]
+        [Parameter(
+            Mandatory=$true,
+            ParameterSetName='AuthenticateWithCredentials',
+            ValueFromPipelineByPropertyName=$true)]
         [string]
         $DatabaseName,
+
+        [Parameter(ParameterSetName='Model')]
+        [switch]
+        $IgnoreValidationErrors,
 
         [switch]
         $Overwrite
@@ -38,33 +69,32 @@ function Export-DacPac {
             }
         }
 
-        $connectionStringBuilder = [System.Data.SqlClient.SqlConnectionStringBuilder]::new()
-
-        if ($PSCmdlet.ParameterSetName -eq 'ConnectionString') {
-            # HACK: For some reason setting the 'ConnectionString' property directly
-            # results in an ArgumentException:
-            #
-            # Keyword not supported: 'ConnectionString'
-            #
-            # Found this workaround somewhere on the internet.
-            $connectionStringBuilder.set_ConnectionString($ConnectionString)
-            
-            # If the DatabaseName parameter was passed set the Initial Catalog of the
-            # connection string builder to the database.
-            if (![string]::IsNullOrWhiteSpace($DatabaseName)) {
-                $connectionStringBuilder.set_InitialCatalog($DatabaseName)
+        if ($PSCmdlet.ParameterSetName -eq 'Model') {
+            # Construct package options.
+            # TODO: Figure out _exactly_ how IgnoreValidationErrors works.
+            $packageOptions = [Microsoft.SqlServer.Dac.PackageOptions]::new()
+            if ($IgnoreValidationErrors) {
+                $packageOptions.IgnoreValidationErrors = [string[]]@("*")
             }
+            
+            # Construct package metadata.
+            $packageMetadata = [Microsoft.SqlServer.Dac.PackageMetadata]::new()
+
+            [Microsoft.SqlServer.Dac.DacPackageExtensions]::BuildPackage($Path, $Model, $packageMetadata, $packageOptions)
         }
         else {
-            $connectionStringBuilder.Add("Data Source", $Server)
-            $connectionStringBuilder.Add("Initial Catalog", $DatabaseName)
-            $connectionStringBuilder.Add("User Id", $Credential.UserName)
-            $connectionStringBuilder.Add("Password", $Credential.GetNetworkCredential().Password)
+            $connectionEndpoint =
+                New-DbConnectionEndpoint `
+                    -ConnectionString $ConnectionString `
+                    -Server $Server `
+                    -Credential $Credential `
+                    -DatabaseName $DatabaseName
+
+            Write-Verbose "Exporting dacpac to $Path."
+            $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionEndpoint.ConnectionString)
+            $service.Extract($Path, $connectionEndpoint.DatabaseName, "SqlDevOps", [Version]::new(1,0,0,0))
         }
 
-        Write-Verbose "Exporting dacpac to $Path."
-        $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionStringBuilder.ConnectionString)
-        $service.Extract($Path, $connectionStringBuilder.InitialCatalog, "SqlDevOps", [Version]::new(1,0,0,0))
         Get-Item -Path $Path
     }
 }
