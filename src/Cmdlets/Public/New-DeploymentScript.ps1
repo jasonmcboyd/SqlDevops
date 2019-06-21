@@ -1,4 +1,4 @@
-function Publish-DacPac {
+function New-DeploymentScript {
     [CmdletBinding()]
     param (
         [Parameter(
@@ -59,7 +59,9 @@ function Publish-DacPac {
         
         $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionEndpoint.ConnectionString)
         $package = [Microsoft.SqlServer.Dac.DacPackage]::Load($Path)
-        $options = [Microsoft.SqlServer.Dac.PublishOptions]::new()
-        $service.Publish($package, $connectionEndpoint.DatabaseName, $options)
+        $options = [Microsoft.SqlServer.Dac.DacDeployOptions]::new()
+        [PSCustomObject]@{
+            DeploymentScript = $service.GenerateDeployScript($package, $connectionEndpoint.DatabaseName, $options)
+        }
     }
 }

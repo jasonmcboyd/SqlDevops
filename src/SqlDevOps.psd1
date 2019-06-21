@@ -12,7 +12,7 @@
 RootModule = 'SqlDevOps.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.8'
+ModuleVersion = '0.0.9'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -71,8 +71,17 @@ Description = 'WIP: SQL DevOps'
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
     'Export-DacPac'
-    'Get-DeploymentScript'
+    'Export-TSqlSchema'
+    'Get-TSqlObject'
+    'Invoke-TSqlCodeAnalysis'
+    'Invoke-TSqlModelValidation'
+    'Invoke-TSqlSchemaComparison'
+    'New-DeploymentReport'
+    'New-DeploymentScript'
+    'New-SchemaCompareEndpoint'
+    'New-TSqlModel'
     'Publish-DacPac'
+    'Remove-TSqlObject'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

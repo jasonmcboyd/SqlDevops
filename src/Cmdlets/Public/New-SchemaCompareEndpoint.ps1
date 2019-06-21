@@ -1,10 +1,10 @@
-function Publish-DacPac {
+function New-SchemaCompareEndpoint {
     [CmdletBinding()]
     param (
         [Parameter(
             Mandatory=$true,
+            ParameterSetName='DacPac',
             Position=0,
-            ValueFromPipeline=$true,
             ValueFromPipelineByPropertyName=$true)]
         [string]
         $Path,
@@ -42,24 +42,19 @@ function Publish-DacPac {
     )
 
     process {
-        $ErrorActionPreference = 'Stop'
-
-        # Normalize and validate the path.
-        $Path = Normalize-Path($Path)
-        if (!(Test-Path $Path)) {
-            throw "DacPac not found at: $Path"
+        if ($PSCmdlet.ParameterSetName -eq 'DacPac') {
+            $Path = Normalize-Path $Path
+            [Microsoft.SqlServer.Dac.Compare.SchemaCompareDacpacEndpoint]::new($Path)
         }
+        else {
+            $connectionEndpoint =
+                New-DbConnectionEndpoint `
+                    -ConnectionString $ConnectionString `
+                    -Server $Server `
+                    -Credential $Credential `
+                    -DatabaseName $DatabaseName
 
-        $connectionEndpoint =
-            New-DbConnectionEndpoint `
-                -ConnectionString $ConnectionString `
-                -Server $Server `
-                -Credential $Credential `
-                -DatabaseName $DatabaseName
-        
-        $service = [Microsoft.SqlServer.Dac.DacServices]::new($connectionEndpoint.ConnectionString)
-        $package = [Microsoft.SqlServer.Dac.DacPackage]::Load($Path)
-        $options = [Microsoft.SqlServer.Dac.PublishOptions]::new()
-        $service.Publish($package, $connectionEndpoint.DatabaseName, $options)
+            [Microsoft.SqlServer.Dac.Compare.SchemaCompareDatabaseEndpoint]::new($connectionEndpoint.ConnectionString)
+        }
     }
 }
