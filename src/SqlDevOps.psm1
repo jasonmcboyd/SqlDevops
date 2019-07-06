@@ -1,11 +1,11 @@
 # Load DacFX
 if ($IsCoreCLR) {
-    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.150.4240.1-preview\netcoreapp2.1\Microsoft.SqlServer.Dac.dll")
-    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.150.4240.1-preview\netcoreapp2.1\Microsoft.SqlServer.Dac.Extensions.dll")
+    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.*\netstandard2.0\Microsoft.SqlServer.Dac.dll")
+    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.*\netstandard2.0\Microsoft.SqlServer.Dac.Extensions.dll")
 }
 else {
-    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.150.4240.1-preview\net46\Microsoft.SqlServer.Dac.dll")
-    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.150.4240.1-preview\net46\Microsoft.SqlServer.Dac.Extensions.dll")
+    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.*\net46\Microsoft.SqlServer.Dac.dll")
+    Add-Type -Path (Join-Path $PSScriptRoot "lib\Microsoft.SqlServer.DacFx.*\net46\Microsoft.SqlServer.Dac.Extensions.dll")
 }
 
 # Get public and private function definition files.
