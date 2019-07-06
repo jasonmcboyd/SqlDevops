@@ -1,21 +1,25 @@
+[CmdletBinding()]
+param (
+    [string]
+    $DacFxVersion = "150.4451.1-preview"
+)
+
 Push-Location $PSScriptRoot
 try {
     if (!(Test-Path ./bin)) {
         mkdir ./bin | out-null
     }
     else {
-        rm ./bin/* -force -recurse
+        remove-item ./bin/* -force -recurse
     }
-    # docker build --platform windows --rm -t sqldevops/build:latest .
-    docker build --rm -t sqldevops/build:latest .
+    
+    docker build --rm --build-arg DACFX_VERSION=$DacFxVersion -t sqldevops/build:latest -f Linux.Dockerfile .
     docker run `
         -t `
         --rm `
-        -e VERSION=$Environment `
-        -v "$(resolve-path ../src):c:/build/src:ro" `
-        -v "$(resolve-path ./bin):c:/build/bin" `
+        -v "$(resolve-path ../src):/build/src:ro" `
+        -v "$(resolve-path ./bin):/build/bin" `
         sqldevops/build
-        # --platform windows
 }
 finally {
     Pop-Location
