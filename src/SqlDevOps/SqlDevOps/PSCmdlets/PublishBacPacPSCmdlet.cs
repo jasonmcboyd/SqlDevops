@@ -6,8 +6,8 @@ using System.Management.Automation;
 
 namespace SqlDevOps.PSCmdlets
 {
-  [Cmdlet(VerbsData.Publish, PSCmdletNouns.BacPac)]
-  public class PublishBacPacPSCmdlet : BaseDbConnectionPSCmdlet
+  [Cmdlet(VerbsData.Publish, PSCmdletNouns.Bacpac)]
+  public class PublishBacpacPSCmdlet : BaseDbConnectionPSCmdlet
   {
 
     #region Parameters

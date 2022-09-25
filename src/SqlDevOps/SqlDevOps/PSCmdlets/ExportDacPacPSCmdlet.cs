@@ -6,9 +6,9 @@ using System.Management.Automation;
 
 namespace SqlDevOps.PSCmdlets
 {
-  [Cmdlet(VerbsData.Export, PSCmdletNouns.DacPac)]
+  [Cmdlet(VerbsData.Export, PSCmdletNouns.Dacpac)]
   [OutputType(typeof(FileInfo))]
-  public class ExportDacPacPSCmdlet : BaseSqlDevOpsPSCmdlet
+  public class ExportDacpacPSCmdlet : BaseSqlDevOpsPSCmdlet
   {
 
     #region Parameters

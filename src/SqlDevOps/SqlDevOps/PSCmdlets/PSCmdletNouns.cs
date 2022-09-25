@@ -2,8 +2,8 @@
 {
   internal static class PSCmdletNouns
   {
-    internal const string BacPac = "BacPac";
-    internal const string DacPac = "DacPac";
+    internal const string Bacpac = "Bacpac";
+    internal const string Dacpac = "Dacpac";
     internal const string SecureConnectionString = "SecureConnectionString";
     internal const string TSqlDeploymentReport = "TSqlDeploymentReport";
     internal const string TSqlDeploymentScript = "TSqlDeploymentScript";

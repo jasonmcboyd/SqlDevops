@@ -15,14 +15,14 @@ namespace SqlDevOps.PSCmdlets
 
     #region Parameters
 
-    protected const string PSN_DACPAC = "DacPac";
+    protected const string PSN_DACPAC = "Dacpac";
     protected const string PSN_SCHEMA_FILES = "SchemaFiles";
 
     [Parameter(
       Mandatory = true,
       ParameterSetName = PSN_DACPAC,
       Position = 0)]
-    public string? DacPacPath { get; set; }
+    public string? DacpacPath { get; set; }
 
     [Parameter(
       Mandatory = true,
@@ -50,8 +50,8 @@ namespace SqlDevOps.PSCmdlets
       switch (ParameterSetName)
       {
         case PSN_DACPAC:
-          if (DacPacPath is null) throw new PSArgumentNullException(nameof(DacPacPath));
-          model = ImportDacPac(DacPacPath);
+          if (DacpacPath is null) throw new PSArgumentNullException(nameof(DacpacPath));
+          model = ImportDacpac(DacpacPath);
           break;
         case PSN_SCHEMA_FILES:
           if (SchemaFolderPath is null) throw new PSArgumentNullException(nameof(SchemaFolderPath));
@@ -77,7 +77,7 @@ namespace SqlDevOps.PSCmdlets
       WriteObject(model);
     }
 
-    private TSqlModel ImportDacPac(string path)
+    private TSqlModel ImportDacpac(string path)
     {
       string normalizedPath = NormalizePath(path);
       WriteDebug($"Normalized path: {normalizedPath}");

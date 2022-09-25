@@ -26,7 +26,7 @@ namespace SqlDevOps.Test
     {
       // Arrange
       await using var container = await TestDatabaseContainerFactory.CreateContainerAsync();
-
+      
       using var powerShell = PowerShellFactory.CreateInstance();
 
       var cs = container.GetConnectionString();
