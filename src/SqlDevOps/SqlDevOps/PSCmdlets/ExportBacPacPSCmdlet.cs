@@ -3,12 +3,13 @@ using SqlDevOps.PSCmdlets.BasePSCmdlets;
 using SqlDevOps.Utilities;
 using System.IO;
 using System.Management.Automation;
+using SqlDevOps.DacFx;
 
 namespace SqlDevOps.PSCmdlets
 {
-  [Cmdlet(VerbsData.Export, PSCmdletNouns.BacPac)]
+  [Cmdlet(VerbsData.Export, PSCmdletNouns.Bacpac)]
   [OutputType(typeof(FileInfo))]
-  public class ExportBacPacPSCmdlet : BaseDbConnectionPSCmdlet
+  public class ExportBacpacPSCmdlet : BaseDbConnectionPSCmdlet
   {
 
     #region Parameters
@@ -44,10 +45,13 @@ namespace SqlDevOps.PSCmdlets
       var service = new DacServices(connectionStringBuilder.ToString());
       using (var fileStream = new FileStream(Path, FileMode.Create))
       {
-        var options = new DacExportOptions()
+        var options = new DacExtractOptions()
         {
         };
-        service.ExportBacpac(fileStream, connectionStringBuilder.InitialCatalog, null, CancellationTokenSource.Token);
+        //service.ExportBacpac(fileStream, connectionStringBuilder.InitialCatalog, null, CancellationTokenSource.Token);
+
+        service.MyExportBacpac(Path, Database, options, null, CancellationTokenSource.Token);
+
       }
       WriteObject(new FileInfo(Path));
     }

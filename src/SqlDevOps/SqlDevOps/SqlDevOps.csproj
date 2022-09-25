@@ -1,15 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> -->
     <Nullable>enable</Nullable>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.1" />
-    <PackageReference Include="Microsoft.SqlServer.DacFx" Version="160.6291.0-preview" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx" Version="160.6296.0" />
     <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlDevOps.DacFx\SqlDevOps.DacFx.csproj" />
   </ItemGroup>
 
 </Project>
