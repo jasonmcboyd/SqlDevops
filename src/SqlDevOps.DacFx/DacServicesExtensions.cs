@@ -20,7 +20,6 @@ using Microsoft.Data.Tools.Schema.Sql.Dac.Data;
 using Microsoft.Data.Tools.Schema.Sql.Deployment;
 using Microsoft.Data.Tools.Schema.Sql.SchemaModel;
 using Microsoft.SqlServer.Dac;
-//using Microsoft.SqlServer.Dac.Data.Model;
 using Microsoft.SqlServer.Dac.Model;
 
 using ReflectionMagic;
@@ -38,6 +37,15 @@ namespace SqlDevOps.DacFx
       FileAccess fileAccess,
       FileShare fileShare,
       string dacErrorResources) => dacServices.AsDynamic().SafeFileStreamGetter(path, fileMode, fileAccess, fileShare, dacErrorResources);
+
+    private static DataSchemaModel GetDataSchemaModel(this TSqlModel model)
+    {
+      SqlSchemaModelObjectService service = model.AsDynamic()._service;
+
+      DataSchemaModel dataSchemaModel = service.AsDynamic()._model;
+
+      return dataSchemaModel;
+    }
 
     private static SqlConnectionFactory GetSqlConnectionFactory(this DacServices dacServices) => dacServices.AsDynamic()._userConnectionFactory;
 
@@ -389,7 +397,7 @@ namespace SqlDevOps.DacFx
                     bacpacPackage.AddTableToFilePartRelationships();
                   }
 
-                  DacOrigin dacOrigin = new DacOrigin(Assembly.GetExecutingAssembly())
+                  DacOrigin dacOrigin = new DacOrigin(System.Reflection.Assembly.GetExecutingAssembly())
                   {
                     OperationStartTime = operationStartTime,
                     ContainsExportedData = !isDacpac
@@ -399,7 +407,8 @@ namespace SqlDevOps.DacFx
 
                   if (!string.IsNullOrEmpty(databaseVersion))
                   {
-                    throw new NotImplementedException("Whoops");
+                    // TODO:
+                    //throw new NotImplementedException("Whoops");
                     //dacOrigin.SetServerInfo(databaseVersion, dataSchemaModel);
                   }
 
