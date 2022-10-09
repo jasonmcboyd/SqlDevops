@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <InternalsAssemblyNames>Microsoft.Data.Tools.Schema.Sql;Microsoft.SqlServer.Dac;Microsoft.Data.Tools.Utilities</InternalsAssemblyNames>
+        <InternalsAssemblyNames>Microsoft.SqlServer.Dac.Extensions;Microsoft.Data.Tools.Schema.Sql;Microsoft.SqlServer.Dac;Microsoft.Data.Tools.Utilities</InternalsAssemblyNames>
     </PropertyGroup>
 
     <ItemGroup>
