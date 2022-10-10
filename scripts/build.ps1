@@ -1,13 +1,20 @@
-(get-item /usr/local/share/PackageManagement/NuGet/Packages/Microsoft.SqlServer.DacFx.*).fullname -match "DacFx\.(?<version>[^/]+)"
-$version = $matches.version
-write-host "version: $version"
+[CmdletBinding()]
+param ()
 
-copy-item `
-    "/usr/local/share/PackageManagement/NuGet/Packages/Microsoft.SqlServer.DacFx.$($version)/lib/" `
-    "/build/bin/SqlDevOps/lib/Microsoft.SqlServer.DacFx.$($version)" `
-    -force `
-    -recurse
+Set-StrictMode -Version 'Latest'
+$ErrorActionPreference = 'Stop'
 
-get-childitem '/build/src' `
-| where-object { $_.name -ne 'lib' } `
-| copy-item -destination '/build/bin/SqlDevOps/' -force -recurse
+Push-Location "$PSScriptRoot/../src/SqlDevOps"
+try {
+    dotnet clean .
+
+    Get-ChildItem -Recurse -Directory `
+    | Where-Object { $_.Name -match '^(bin|obj)$' } `
+    | Remove-Item -Recurse -Force
+
+    dotnet build .
+    dotnet publish . --os win
+}
+finally {
+  Pop-Location
+}
