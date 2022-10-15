@@ -109,7 +109,8 @@ namespace SqlDevOps.PSCmdlets
       var modelExtractOptions = new ModelExtractOptions()
       {
         LoadAsScriptBackedModel = true,
-        Storage = DacSchemaModelStorageType.Memory
+        Storage = DacSchemaModelStorageType.Memory,
+        
       };
       return TSqlModel.LoadFromDatabase(connectionStringBuilder.ToString(), modelExtractOptions);
     }

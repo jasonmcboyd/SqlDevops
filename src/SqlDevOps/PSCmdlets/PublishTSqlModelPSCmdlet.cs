@@ -4,6 +4,7 @@ using SqlDevOps.PSCmdlets.BasePSCmdlets;
 using SqlDevOps.Utilities;
 using System.IO;
 using System.Management.Automation;
+using System.Threading;
 
 namespace SqlDevOps.PSCmdlets
 {
@@ -23,13 +24,12 @@ namespace SqlDevOps.PSCmdlets
     [Parameter(
       Mandatory = false,
       Position = 1)]
-    public DacDeployOptions? DeployOptions { get; set; }
+    public DacDeployOptions? DacDeployOptions { get; set; }
 
     public SwitchParameter IgnoreValidationErrors { get; set; }
 
     #endregion Parameters
 
-    // This method will be called for each input received from the pipeline to this cmdlet; if no input is received, this method is not called
     protected override void ProcessRecord()
     {
       var connectionStringBuilder =
@@ -47,11 +47,15 @@ namespace SqlDevOps.PSCmdlets
 
       DacPackageExtensions.BuildPackage(stream, Model, packageMetadata);
       var package = DacPackage.Load(stream);
+
       var publishOptions = new PublishOptions()
       {
-        DeployOptions = DeployOptions
+        DeployOptions = DacDeployOptions,
+        CancelToken = CancellationTokenSource.Token,
       };
+
       var result = service.Publish(package, connectionStringBuilder.InitialCatalog, publishOptions);
+
       WriteObject(result);
     }
   }
