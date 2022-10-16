@@ -5,6 +5,7 @@ using SqlDevOps.Utilities;
 using System.IO;
 using System.Management.Automation;
 using System.Threading;
+using SqlDevOps.DacFx;
 
 namespace SqlDevOps.PSCmdlets
 {
@@ -26,6 +27,8 @@ namespace SqlDevOps.PSCmdlets
       Position = 1)]
     public DacDeployOptions? DacDeployOptions { get; set; }
 
+    // TODO: Does this work?
+    [Parameter()]
     public SwitchParameter IgnoreValidationErrors { get; set; }
 
     #endregion Parameters
@@ -45,7 +48,14 @@ namespace SqlDevOps.PSCmdlets
 
       using var stream = new MemoryStream();
 
-      DacPackageExtensions.BuildPackage(stream, Model, packageMetadata);
+      var packageOptions = new PackageOptions();
+
+      // TODO: Figure out _exactly_ how IgnoreValidationErrors works.
+      if (IgnoreValidationErrors)
+        packageOptions.IgnoreValidationErrors = new string[] { "*" };
+
+      DacPackageExtensions.BuildPackage(stream, Model, packageMetadata, packageOptions);
+
       var package = DacPackage.Load(stream);
 
       var publishOptions = new PublishOptions()

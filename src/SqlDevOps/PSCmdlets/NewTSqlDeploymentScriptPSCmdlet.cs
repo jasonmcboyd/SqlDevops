@@ -12,7 +12,6 @@ namespace SqlDevOps.PSCmdlets
   [OutputType(typeof(string))]
   public class NewTSqlDeploymentScriptPSCmdlet : BaseDbConnectionPSCmdlet
   {
-
     #region Parameters
 
     [Parameter(

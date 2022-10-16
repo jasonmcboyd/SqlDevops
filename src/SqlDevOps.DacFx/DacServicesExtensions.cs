@@ -23,22 +23,13 @@ using Microsoft.SqlServer.Dac;
 using Microsoft.SqlServer.Dac.Model;
 
 using ReflectionMagic;
-using System.Reflection;
 
 namespace SqlDevOps.DacFx
 {
   public static class DacServicesExtensions
   {
-
-    private static Stream GetSafeFileStream(
-      this DacServices dacServices,
-      string path,
-      FileMode fileMode,
-      FileAccess fileAccess,
-      FileShare fileShare,
-      string dacErrorResources) => dacServices.AsDynamic().SafeFileStreamGetter(path, fileMode, fileAccess, fileShare, dacErrorResources);
-
-    private static DataSchemaModel GetDataSchemaModel(this TSqlModel model)
+    // TODO: I don't really like this. Spit into two different private member extension methods.
+    internal static DataSchemaModel GetDataSchemaModel(this TSqlModel model)
     {
       SqlSchemaModelObjectService service = model.AsDynamic()._service;
 
@@ -47,17 +38,7 @@ namespace SqlDevOps.DacFx
       return dataSchemaModel;
     }
 
-    private static SqlConnectionFactory GetSqlConnectionFactory(this DacServices dacServices) => dacServices.AsDynamic()._userConnectionFactory;
-
-    private static DacLoggingContext CreateLoggingContext(this DacServices dacServices, DacTask dacTask) => dacServices.AsDynamic().CreateLoggingContext(dacTask);
-
-    private static int GetDatabaseLockTimeInMS(this DacServices dacServices, int databaseLockTimeout) => dacServices.AsDynamic().GetDatabaseLocktimeinMS(databaseLockTimeout);
-
-    private static IStackLogSettingsContext CreateLogSettingsContext(this DacServices dacServices, bool hashObjectNamesInLogs) => dacServices.AsDynamic().CreateLogSettingsContext(hashObjectNamesInLogs);
-
-    private static IStackSettingsContext CreateSettingsContext(this DacServices dacServices, DacLoggingContext dacLoggingContext) => dacServices.AsDynamic().CreateSettingsContext(dacLoggingContext);
-
-    private static (List<DacMessage>, SqlPlatforms) ValidateModelForExport(
+    internal static (List<DacMessage>, SqlPlatforms) ValidateModelForExport(
       this DacServices dacServices,
       object operation,
       DataSchemaModel dataSchemaModel,
@@ -73,44 +54,6 @@ namespace SqlDevOps.DacFx
 
       return (validationMessages, azurePlatformSurfaceArea);
     }
-
-    private static void ClearLogSettings(this DacServices dacServices) => dacServices.AsDynamic().ClearLogSettings();
-
-    private static void ExcludeRandomizedIndexesFromBacpac(
-      this DacServices dacServices,
-      DataSchemaModel dataSchemaModel,
-      IList<SqlTable> tables,
-      bool ignoreIndexesStatisticsOnEnclaveEnabledColumns,
-      DacLoggingContext dacLoggingContext)
-      => dacServices.AsDynamic().ExcludeRandomizedIndexesFromBacpac(dataSchemaModel, tables, ignoreIndexesStatisticsOnEnclaveEnabledColumns, dacLoggingContext);
-
-    private static IOperation CreateExportOperation(
-      this DacServices dacServices,
-      Func<Stream> streamGetter,
-      string databaseName,
-      DacMetadata dacMetadata,
-      IEnumerable<Tuple<string, string>> tables,
-      CancellationToken cancellationToken,
-      ExtractOperation extractOperation,
-      DateTime operationStartTime,
-      bool isDacpac,
-      Func<uint?> getMinModelVersion,
-      string temporaryDirectory,
-      DacLoggingContext dacLoggingContext,
-      CompressionOption compressionOption)
-      => dacServices.AsDynamic().CreateExportOperation(streamGetter, databaseName, dacMetadata, tables, cancellationToken, extractOperation, operationStartTime, false, getMinModelVersion, temporaryDirectory, dacLoggingContext, compressionOption);
-
-    private static void InternalDeploy(
-      this DacServices dacServices,
-      IPackageSource packageSource,
-      bool isDacpac,
-      string targetDatabaseName,
-      DacDeployOptions options,
-      CancellationToken cancellationToken,
-      DacLoggingContext loggingContext,
-      Action<IDeploymentController, DeploymentPlan, ErrorManager> reportPlanOperation = null,
-      bool executePlan = true)
-      => dacServices.AsDynamic().InternalDeploy(packageSource, isDacpac, targetDatabaseName, options, cancellationToken, loggingContext, reportPlanOperation, executePlan);
 
     public static void MyImportBacpac(
       this DacServices dacServices,

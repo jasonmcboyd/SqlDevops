@@ -18,6 +18,7 @@ namespace SqlDevOps.PSCmdlets
     protected const string PSN_DACPAC = "Dacpac";
     protected const string PSN_SCHEMA_FILES = "SchemaFiles";
 
+    // TODO: Replace with a single "Path" parameter for Dacpac, Bacpac, and schema files folder.
     [Parameter(
       Mandatory = true,
       ParameterSetName = PSN_DACPAC,
@@ -41,7 +42,6 @@ namespace SqlDevOps.PSCmdlets
     {
       base.EndProcessing();
     }
-
 
     protected override void ProcessRecord()
     {

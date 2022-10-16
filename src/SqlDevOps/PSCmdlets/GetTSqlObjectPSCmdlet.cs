@@ -1,10 +1,10 @@
 using Microsoft.SqlServer.Dac.Model;
-using SqlDevOps.PSCmdlets.BasePSCmdlets;
-using SqlDevOps.Utilities;
-using System.Management.Automation;
 using SqlDevOps.Extensions;
-using System;
+using SqlDevOps.PSCmdlets.BasePSCmdlets;
+using System.Collections.Generic;
+using System.Management.Automation;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace SqlDevOps.PSCmdlets
 {
@@ -14,8 +14,25 @@ namespace SqlDevOps.PSCmdlets
   {
     #region Parameters
 
+    protected const string PSN_DEFAULT = $"{nameof(Model)}, {nameof(ObjectType)}";
+    protected const string PSN_NAME = $"{nameof(Model)}, {nameof(ObjectType)}, {nameof(Name)}";
+    protected const string PSN_LITERAL_NAME = $"{nameof(Model)}, {nameof(ObjectType)}, {nameof(LiteralName)}";
+
     [Parameter(
       Mandatory = true,
+      ParameterSetName = PSN_DEFAULT,
+      Position = 0,
+      ValueFromPipeline = true,
+      ValueFromPipelineByPropertyName = true)]
+    [Parameter(
+      Mandatory = true,
+      ParameterSetName = PSN_LITERAL_NAME,
+      Position = 0,
+      ValueFromPipeline = true,
+      ValueFromPipelineByPropertyName = true)]
+    [Parameter(
+      Mandatory = true,
+      ParameterSetName = PSN_NAME,
       Position = 0,
       ValueFromPipeline = true,
       ValueFromPipelineByPropertyName = true)]
@@ -23,54 +40,94 @@ namespace SqlDevOps.PSCmdlets
 
     [Parameter(
       Mandatory = false,
+      ParameterSetName = PSN_DEFAULT,
+      Position = 1)]
+    [Parameter(
+      Mandatory = false,
+      ParameterSetName = PSN_LITERAL_NAME,
+      Position = 1)]
+    [Parameter(
+      Mandatory = false,
+      ParameterSetName = PSN_NAME,
       Position = 1)]
     [ValidateSet(
+      nameof(CheckConstraint),
+      nameof(DefaultConstraint),
+      nameof(ForeignKeyConstraint),
+      nameof(Index),
       nameof(Login),
-      nameof(RoleMembership),
+      nameof(PrimaryKeyConstraint),
       nameof(Procedure),
+      nameof(Role),
+      nameof(RoleMembership),
+      nameof(ScalarFunction),
+      nameof(Schema),
       nameof(Table),
-      nameof(User))]
+      nameof(TableValuedFunction),
+      nameof(UniqueConstraint),
+      nameof(User),
+      nameof(View))]
     public string[]? ObjectType { get; set; }
+
+    [Parameter(
+      Mandatory = true,
+      ParameterSetName = PSN_NAME,
+      Position = 2)]
+    public string[]? Name { get; set; }
+
+    [Parameter(
+      Mandatory = true,
+      ParameterSetName = PSN_LITERAL_NAME,
+      Position = 2)]
+    public string[]? LiteralName { get; set; }
 
     #endregion Parameters
 
-    private ModelTypeClass[]? TypeClasses { get; set; }
+    private static Dictionary<string, ModelTypeClass> TypeClassMap { get; set; }
 
-    protected override void BeginProcessing()
+    static GetTSqlObjectPSCmdlet()
     {
-      base.BeginProcessing();
-
-      if (ObjectType == null || ObjectType.Length == 0)
-        return;
-
       var exampleModelType = typeof(RoleMembership);
       var propertyName = nameof(RoleMembership.TypeClass);
       var modelNamespace = exampleModelType.Namespace;
       var assembly = System.Reflection.Assembly.GetAssembly(exampleModelType);
 
-      TypeClasses =
-        ObjectType
-        .Select(x => $"{modelNamespace}.{x}")
-        .Select(assembly.GetType)
-        .Select(x => x.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static))
-        .Select(x => x.GetValue(null, null))
-        .Cast<ModelTypeClass>()
-        .ToArray();
+      TypeClassMap =
+        assembly!
+        .GetTypes()
+        .Select(type => type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static))
+        .Where(property => property != null && property.PropertyType == typeof(ModelTypeClass))
+        .Cast<PropertyInfo>()
+        .ToDictionary(
+          property => property.DeclaringType!.Name,
+          property => (ModelTypeClass)property.GetValue(null, null)!);
     }
 
     protected override void ProcessRecord()
     {
       var model = Model!;
 
-      if (TypeClasses == null || TypeClasses.Length == 0)
+      var objects =
+        (ObjectType?.Length ?? 0) == 0
+        ? model.GetObjects(DacQueryScopes.UserDefined)
+        : ObjectType!.Select(type => TypeClassMap![type]).SelectMany(modelTypeClass => model.GetObjects(DacQueryScopes.UserDefined, modelTypeClass));
+
+      switch (ParameterSetName)
       {
-        model.GetObjects(DacQueryScopes.All).ForEach(WriteObject);
-        return;
+        case PSN_LITERAL_NAME:
+          objects = objects.Where(obj => LiteralName!.Contains(obj.Name.ToString(), System.StringComparer.OrdinalIgnoreCase));
+          break;
+        case PSN_NAME:
+          objects = objects.Where(obj => Name!.Any(namePattern => Regex.IsMatch(obj.Name.ToString(), namePattern, RegexOptions.IgnoreCase)));
+          break;
+        case PSN_DEFAULT:
+          // Do nothing.
+          break;
+        default:
+          throw new PSNotImplementedException();
       }
 
-      TypeClasses
-        .SelectMany(typeClass => model.GetObjects(DacQueryScopes.UserDefined, typeClass))
-        .ForEach(WriteObject);
+      objects.ForEach(WriteObject);
     }
   }
 }
