@@ -40,11 +40,20 @@ namespace SqlDevOps.PSCmdlets
           : new TreeNode<TSqlObject>[] { new TreeNode<TSqlObject>(0, obj) };
 
         foreach (var node in nodes)
+        {
           if (ShouldProcess(node.Value.ToCliString(), "Remove"))
+          {
+            WriteVerbose($"Deleting '{node.Value.ToCliString()}'...");
             Model!.DeleteObject(node.Value);
+          }
+        }
       }
     }
 
-    protected override void EndProcessing() => WriteObject(Model);
+    protected override void EndProcessing()
+    {
+      // TODO: do not return anything if WhatIf is present.
+      WriteObject(Model);
+    }
   }
 }

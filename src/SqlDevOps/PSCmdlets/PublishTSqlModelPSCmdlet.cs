@@ -5,7 +5,6 @@ using SqlDevOps.Utilities;
 using System.IO;
 using System.Management.Automation;
 using System.Threading;
-using SqlDevOps.DacFx;
 
 namespace SqlDevOps.PSCmdlets
 {
