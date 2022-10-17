@@ -3,6 +3,7 @@ using SqlDevOps.PSCmdlets.BasePSCmdlets;
 using System.IO;
 using System.Management.Automation;
 using SqlDevOps.Extensions;
+using System.Collections.Generic;
 
 namespace SqlDevOps.PSCmdlets
 {
@@ -45,40 +46,49 @@ namespace SqlDevOps.PSCmdlets
     protected override void ProcessRecord()
     {
       var normalizedPath = NormalizePath(Path!);
-      var objects = Model!.GetObjects(DacQueryScopes.UserDefined).Where(x => x.Name.HasName);
+      var objects = Model!.GetObjects(DacQueryScopes.UserDefined).Where(sqlObject => sqlObject.Name.HasName);
 
-      var dict = objects.ToDictionary(x => ConstructPath(x), x => x);
+      var paths = new HashSet<string>();
+      var dict = objects.ToDictionary(sqlObject => sqlObject, sqlObject => ConstructPath(sqlObject, paths));
 
       if (!Overwrite)
         foreach (var pair in dict)
-          if (File.Exists(pair.Key))
+          if (File.Exists(pair.Value))
             throw new PSInvalidOperationException("This would overwrite a file. Pass the Overwrite switch if overwriting is intentional.");
       
       foreach (var (key, value) in dict)
       {
-        var script = value.GetScript();
-        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(key));
-        File.WriteAllText(key, script);
+        var script = key.GetScript();
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(value));
+        File.WriteAllText(value, script);
       }
     }
 
-    private string ConstructPath(TSqlObject obj)
+    private string ConstructPath(TSqlObject sqlObject, HashSet<string> paths)
     {
       var path = NormalizePath(Path!);
 
       switch (DirectoryStructure)
       {
         case ValidateSet.SchemaType:
-          path = System.IO.Path.Combine(path, obj.GetSchema(), obj.GetObjectType());
+          path = System.IO.Path.Combine(path, sqlObject.GetSchema(), sqlObject.GetObjectType());
           break;
         case ValidateSet.TypeSchema:
-          path = System.IO.Path.Combine(path, obj.GetObjectType(), obj.GetSchema());
+          path = System.IO.Path.Combine(path, sqlObject.GetObjectType(), sqlObject.GetSchema());
           break;
         default:
           throw new PSNotImplementedException($"Have not implemented '{DirectoryStructure}' directory structure.");
       }
 
-      path = System.IO.Path.Combine(path, obj.GetFilename());
+      path = System.IO.Path.Combine(path, sqlObject.GetFilename());
+
+      //var versionedPath = path;
+      //var version = 1;
+
+      //while (paths.Contains(versionedPath))
+      //  versionedPath = $"{path}_{version++}";
+
+      //return versionedPath;
 
       return path;
     }

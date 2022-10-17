@@ -25,7 +25,15 @@ namespace SqlDevOps.PSCmdlets
 
     #endregion Parameters
 
-    protected override void ProcessRecord() => TSqlObject!.ForEach(Model!.DeleteObject);
+    // TODO: Deleting a table should remove foreign keys and indexes.
+    protected override void ProcessRecord()
+    {
+      foreach (var obj in TSqlObject)
+      {
+        Model!.DeleteObject(obj);
+      }
+      //TSqlObject!.ForEach(Model!.DeleteObject);
+    }
 
     protected override void EndProcessing() => WriteObject(Model);
   }

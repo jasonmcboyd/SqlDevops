@@ -1,0 +1,13 @@
+﻿<Types>
+  <Type>
+    <Name>Microsoft.SqlServer.Dac.Model.TSqlObject</Name>
+    <Members>
+      <ScriptProperty>
+        <Name>ObjectTypeName</Name>
+        <GetScriptBlock>
+          $this.ObjectType.Name
+        </GetScriptBlock>
+      </ScriptProperty>
+    </Members>
+  </Type>
+</Types>
