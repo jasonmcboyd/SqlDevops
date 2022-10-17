@@ -2,10 +2,11 @@ using Microsoft.SqlServer.Dac.Model;
 using SqlDevOps.PSCmdlets.BasePSCmdlets;
 using SqlDevOps.Extensions;
 using System.Management.Automation;
+using SqlDevOps.Utilities;
 
 namespace SqlDevOps.PSCmdlets
 {
-  [Cmdlet(VerbsCommon.Remove, PSCmdletNouns.TSqlObject)]
+  [Cmdlet(VerbsCommon.Remove, PSCmdletNouns.TSqlObject, SupportsShouldProcess = true)]
   [OutputType(typeof(TSqlModel))]
   public class RemoveTSqlObjectPSCmdlet : BaseSqlDevOpsPSCmdlet
   {
@@ -23,16 +24,25 @@ namespace SqlDevOps.PSCmdlets
       ValueFromPipelineByPropertyName = true)]
     public TSqlObject[]? TSqlObject { get; set; }
 
+    [Parameter()]
+    public SwitchParameter RemoveReferencingObjects { get; set; }
+
     #endregion Parameters
 
     // TODO: Deleting a table should remove foreign keys and indexes.
     protected override void ProcessRecord()
     {
-      foreach (var obj in TSqlObject)
+      foreach (var obj in TSqlObject!)
       {
-        Model!.DeleteObject(obj);
+        var nodes =
+          RemoveReferencingObjects
+          ? obj.GetReferencingPostOrderTraversal()
+          : new TreeNode<TSqlObject>[] { new TreeNode<TSqlObject>(0, obj) };
+
+        foreach (var node in nodes)
+          if (ShouldProcess(node.Value.ToCliString(), "Remove"))
+            Model!.DeleteObject(node.Value);
       }
-      //TSqlObject!.ForEach(Model!.DeleteObject);
     }
 
     protected override void EndProcessing() => WriteObject(Model);

@@ -10,6 +10,7 @@
     internal const string TSqlDeploymentScript = "TSqlDeploymentScript";
     internal const string TSqlModel = "TSqlModel";
     internal const string TSqlObject = "TSqlObject";
+    internal const string TSqlObjectTree = "TSqlObjectTree";
     internal const string TSqlSchema = "TSqlSchema";
   }
 }
