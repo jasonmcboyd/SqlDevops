@@ -1,5 +1,4 @@
 using Microsoft.Data.SqlClient;
-using SqlDevOps.Utilities;
 using System.Management.Automation;
 using System.Security;
 using SqlDevOps.Extensions;
@@ -34,6 +33,10 @@ namespace SqlDevOps.PSCmdlets
       ParameterSetName = PSN_AUTHENTICATE_WITH_INTEGRATED_SECURITY)]
     public SwitchParameter IntegratedSecurity { get; set; }
 
+    [Parameter(
+      Mandatory = true)]
+    public SwitchParameter TrustServerCertificate { get; set; }
+
     #endregion Parameters
 
     protected override void ProcessRecord()
@@ -46,6 +49,11 @@ namespace SqlDevOps.PSCmdlets
       if (!string.IsNullOrEmpty(Database))
       {
         builder.InitialCatalog = Database;
+      }
+
+      if (TrustServerCertificate.IsPresent)
+      {
+        builder.TrustServerCertificate = TrustServerCertificate.ToBool();
       }
 
       switch (ParameterSetName)
