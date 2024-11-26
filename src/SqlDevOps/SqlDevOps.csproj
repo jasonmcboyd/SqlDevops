@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="3.1.5" />
     <PackageReference Include="Microsoft.SqlServer.DacFx" Version="160.6296.0" />
     <PackageReference Include="PowerShellStandard.Library" Version="7.0.0-preview.1" />
   </ItemGroup>
